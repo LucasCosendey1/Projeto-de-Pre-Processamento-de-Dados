@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engenharia de Features - Bike Sharing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/night.min.css" id="theme">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/monokai.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+        .container { display: flex; justify-content: space-between; align-items: center; }
+        .col { flex: 1; margin: 10px; }
+        .metric-box { background: #2c3e50; padding: 20px; border-radius: 10px; border: 2px solid #e74c3c; }
+        .img-shadow { box-shadow: 0 4px 8px rgba(0,0,0,0.5); border-radius: 5px; background: white; }
+        
+        /* Ajuste de imagens e texto */
+        .reveal img { max-height: 400px; object-fit: contain; }
+        .reveal ul { font-size: 0.8em; }
+        .caption { font-size: 0.6em; color: #ccc; margin-top: -10px; display: block;}
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <section data-transition="zoom">
+                <h3>O Impacto da Engenharia de Features Temporais</h3>
+                <h4>Na Previsão de Demanda de Bicicletas</h4>
+                <p><small>Disciplina: Pré-processamento de Dados</small></p>
+                <hr>
+                <p><strong>Autores:</strong><br>Lucas Edson<br>Djefferson dos Santos</p>
+                <p><small>João Pessoa - PB | Novembro 2025</small></p>
+            </section>
+
+            <section data-transition="slide">
+                <h3>1. O Problema</h3>
+                <div class="container">
+                    <div class="col">
+                        <p style="text-align: left;">Desafios na previsão de demanda (Bike Sharing):</p>
+                        <ul>
+                            <li class="fragment"><strong>Dados Brutos:</strong> Contêm ruídos e escalas incompatíveis.</li>
+                            <li class="fragment"><strong>Natureza Temporal:</strong> Padrões complexos (hora, dia, estação).</li>
+                            <li class="fragment"><strong>Distribuição:</strong> Dados reais são altamente assimétricos.</li>
+                        </ul>
+                        <br>
+                        <p class="fragment" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px;">
+                            <strong>Objetivo:</strong> Provar que o <em>Pré-processamento</em> é mais impactante que a escolha do algoritmo.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section data-transition="convex">
+                <h3>2. Preparação do Target</h3>
+                <img src="image_5c6fda.png" class="img-shadow" alt="Verifique se image_5c6fda.png está na pasta C:\Pre-processamento">
+                <div style="display: flex; justify-content: space-around;">
+                    <small>Antes: Assimétrico</small>
+                    <small>Depois: Normalizado (Log)</small>
+                </div>
+                <ul>
+                    <li class="fragment">A distribuição original (esquerda) prejudica o aprendizado do modelo.</li>
+                    <li class="fragment">Aplicamos <code>log(count + 1)</code> para normalizar os dados.</li>
+                    <li class="fragment">Isso alinha o alvo com a métrica de avaliação <strong>RMSLE</strong>.</li>
+                </ul>
+            </section>
+
+            <section data-transition="concave">
+                <h3>3. Análise Sazonal</h3>
+                <div class="container">
+                    <div class="col">
+                        <span class="caption">Por Estação</span>
+                        <img src="image_5c6ffe.png" class="img-shadow" alt="image_5c6ffe.png ausente">
+                    </div>
+                    <div class="col">
+                        <span class="caption">Por Clima</span>
+                        <img src="image_5c701e.png" class="img-shadow" alt="image_5c701e.png ausente">
+                    </div>
+                </div>
+                <ul>
+                    <li class="fragment"><strong>Estações:</strong> Demanda cai levemente na Primavera (1).</li>
+                    <li class="fragment"><strong>Clima:</strong> Condições severas (4 - Chuva Forte/Neve) praticamente zeram a demanda.</li>
+                    <li class="fragment">O modelo precisa aprender a penalizar dias de clima ruim.</li>
+                </ul>
+            </section>
+
+            <section data-transition="zoom">
+                <h3>4. Variáveis Contínuas</h3>
+                <div class="container">
+                    <div class="col">
+                        <img src="image_5c703d.png" class="img-shadow" alt="image_5c703d.png ausente">
+                        <small>Temperatura</small>
+                    </div>
+                    <div class="col">
+                        <img src="image_5c7302.png" class="img-shadow" alt="image_5c7302.png ausente">
+                        <small>Umidade</small>
+                    </div>
+                </div>
+                <ul>
+                    <li class="fragment"><strong>Temperatura:</strong> Correlação positiva clara. Pico de uso entre 20°C e 30°C.</li>
+                    <li class="fragment"><strong>Umidade:</strong> Correlação negativa. Preferência por dias mais secos.</li>
+                </ul>
+            </section>
+
+            <section data-transition="fade">
+                <h3>5. Mapa de Correlação</h3>
+                <img src="image_5c733b.png" class="img-shadow" style="max-height: 450px;" alt="image_5c733b.png ausente">
+                <ul>
+                    <li class="fragment">Forte correlação entre <code>registered</code> e o target <code>count</code> (0.97).</li>
+                    <li class="fragment">Redundância detectada entre <code>Month</code> e <code>Season</code>.</li>
+                </ul>
+            </section>
+
+            <section data-transition="slide">
+                <h3>6. O "Pulo do Gato": Engenharia Temporal</h3>
+                <p>Como o modelo entende que 23h é vizinho de 00h?</p>
+                <pre><code class="python" data-trim>
+# Transformação Cíclica (Seno e Cosseno)
+# Transforma o tempo linear em coordenadas circulares
+df['hora_sin'] = np.sin(2 * np.pi * df['hora']/24)
+df['hora_cos'] = np.cos(2 * np.pi * df['hora']/24)
+                </code></pre>
+                <ul>
+                    <li class="fragment">Sem isso, o modelo acha que 0 e 23 são distantes.</li>
+                    <li class="fragment">Também aplicamos <strong>OneHotEncoder</strong> para remover ordem artificial de categorias.</li>
+                </ul>
+            </section>
+
+            <section data-transition="convex">
+                <h3>7. Resultados Obtidos</h3>
+                <div id="chartRMSLE" style="width:100%; height:350px;"></div>
+                <script>
+                    var dataRMSLE = [{
+                        x: ['Baseline (Ingênuo)', 'Otimizado (Final)'],
+                        y: [1.2687, 0.3020],
+                        type: 'bar',
+                        text: ['Erro: 1.2687', 'Erro: 0.3020'],
+                        textposition: 'auto',
+                        marker: {
+                            color: ['#e74c3c', '#2ecc71']
+                        }
+                    }];
+                    var layoutRMSLE = {
+                        title: 'Redução do Erro RMSLE (Menor é melhor)',
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)',
+                        font: { color: 'white' },
+                        yaxis: { title: 'RMSLE' },
+                        margin: { t: 40, b: 40 }
+                    };
+                    Plotly.newPlot('chartRMSLE', dataRMSLE, layoutRMSLE);
+                </script>
+                
+                <div class="metric-box fragment">
+                    <h3>Melhoria de 76.19%</h3>
+                    <p><small>O erro caiu drasticamente apenas melhorando os dados.</small></p>
+                </div>
+            </section>
+
+            <section data-transition="zoom">
+                <h3>8. Validação do Modelo</h3>
+                <div class="container">
+                    <div class="col">
+                        <img src="image_5c735b.png" class="img-shadow" alt="image_5c735b.png ausente">
+                        <small>Real vs Previsto</small>
+                    </div>
+                    <div class="col">
+                        <img src="image_5c737a.png" class="img-shadow" alt="image_5c737a.png ausente">
+                        <small>Resíduos</small>
+                    </div>
+                </div>
+                <ul>
+                    <li class="fragment"><strong>Real vs Previsto:</strong> Forte alinhamento na diagonal (alta precisão).</li>
+                    <li class="fragment"><strong>Resíduos:</strong> Distribuição normal centrada em zero (sem viés sistemático).</li>
+                </ul>
+            </section>
+
+            <section data-transition="zoom-out">
+                <h3>Conclusão</h3>
+                <div style="text-align: left; font-size: 0.9em;">
+                    <p class="fragment">✅ <strong>Dados > Algoritmo:</strong> O tratamento adequado dos dados teve mais impacto que a complexidade do modelo.</p>
+                    <p class="fragment">✅ <strong>Ciclicidade:</strong> Capturar a natureza circular do tempo (Seno/Cosseno) foi fundamental.</p>
+                    <p class="fragment">✅ <strong>Impacto Prático:</strong> Um modelo com erro de 0.30 é viável para uso em produção e planejamento logístico.</p>
+                </div>
+                <br>
+                <h4 style="color: #3498db; margin-top: 20px;">Obrigado!</h4>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/plugin/highlight/highlight.min.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            plugins: [ RevealHighlight ],
+            transition: 'slide'
+        });
+    </script>
+</body>
+</html>
